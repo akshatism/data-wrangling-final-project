@@ -23,23 +23,23 @@ library(tm)
 library(plotly)
 ```
 
-Load The NYC Airbnb Open dataset which contains 16 columns and 48895 unique values and the full data can be obtained from http://insideairbnb.com/
+Load The NYC Airbnb Open dataset which contains 16 columns and 48895 unique values 
+and the full data can be obtained from http://insideairbnb.com/
 
-I wanted to take the Airbnb from two different sources that is one the listing dataset and the other one is reviews dataset
-but I got the dataset which had a combination for both of them and required subsequent amount of cleaning.
+I wanted to take the Airbnb from two different sources that is one the listing dataset 
+and the other one is reviews datasetbut I got the dataset which had a combination 
+for both of them and required subsequent amount of cleaning.
 
 ```{r }
 airbnb <- read.csv("Airbnb_Listings_NYC.csv")
 head(airbnb)
 ```
 
-
-
-First I have introduced three important variables into our problem which is really important for our case. These are
+First I have introduced three important variables into our problem which is really important for our case. 
+These are
 • Price Group - KPI for classifying based on price
 • Usage group - Listings use based on the number of reviews
-• Total Revenue - product of price, reviews and nights and the decision class
-for our problem
+• Total Revenue - product of price, reviews and nights and the decision class for our problem
 
 ```{r }
 airbnb <- airbnb %>% mutate(price_group=ifelse(price < 61, "Very Low", ifelse(price < 91, "Low", ifelse(price < 131, "Moderate",
@@ -48,10 +48,9 @@ airbnb <- airbnb %>% mutate(price_group=ifelse(price < 61, "Very Low", ifelse(pr
 head(airbnb)
 ```
 
-
-
-Then in order to get a clean corpus for further analysis we need to clean or mine the reviews. So we will do the following steps for that remove unwanted characters, convert all words to lowercase, filter unnecessary large sentences, remove stopwords that neither add positive or negative impact
-
+Then in order to get a clean corpus for further analysis we need to clean or mine the reviews. 
+So we will do the following steps for that remove unwanted characters, convert all words to lowercase, 
+filter unnecessary large sentences, remove stopwords that neither add positive or negative impact
 
 Then comes the final preparation step to convert into term document matrix
 for Exploratory Data Anaysis step
@@ -70,27 +69,27 @@ dtma <-DocumentTermMatrix(clean,control = list(weighting = function(x) weightTfI
 wc_corpus <- sort(colSums(as.matrix(dtma)), decreasing=TRUE) 
 ```
 
-
-
-Manhattan contains the most amount of listings; additionally, it looks like it is the most expensive. Next,Brooklyn appears to be next popular; however,with a more reasonable distribution of price listings. High - Very High seem to only take up 20% of the population. Queens has only 5000 listings, and appears very cheap. Lastly, the Bronx and State Island do not appear very popular for Airbnb.
+Manhattan contains the most amount of listings; additionally, it looks like it is the most expensive. 
+Next,Brooklyn appears to be next popular; however,with a more reasonable distribution of price listings. 
+High - Very High seem to only take up 20% of the population. 
+Queens has only 5000 listings, and appears very cheap. Lastly, 
+the Bronx and State Island do not appear very popular for Airbnb.
 
 ```{r }
 ggplot(airbnb, aes(neighbourhood_group)) + geom_bar(aes(fill = price_group)) + ggtitle("Listings Count by Borough")
 ```
 
-
-
-We can see from the count of listings by room type graph that entire home/apt have high price range and shared have generally low range for all the price groups with private in the middle.
-
+We can see from the count of listings by room type graph that entire home/apt have high price range 
+and shared have generally low range for all the price groups with private in the middle.
 
 ```{r }
 ggplot(airbnb, aes(room_type)) + geom_bar(aes(fill = price_group)) + ggtitle("Count of Listings by Room Type")
 ```
 
-
-
-Now we can focus on the density of the listings with respect to latitude and longitude and see the distribution by borough and price group. We can see that Manhattan, Bronx and Brooklyn are highly populated in comparison to the other boroughs. Price group density shows the high price density listings with the distribution of low price.
-
+Now we can focus on the density of the listings with respect to latitude and longitude 
+and see the distribution by borough and price group. 
+We can see that Manhattan, Bronx and Brooklyn are highly populated in comparison to the other boroughs. 
+Price group density shows the high price density listings with the distribution of low price.
 
 ```{r }
 ggplot(airbnb, aes(longitude,latitude)) + geom_density2d(aes(color = neighbourhood_group)) + ggtitle("Density of Listings by Borough")
@@ -100,21 +99,19 @@ ggplot(airbnb, aes(longitude,latitude)) + geom_density2d(aes(color = neighbourho
 ggplot(subset(airbnb, price_group == "Very High" | price_group == "Very Low"), aes(longitude,latitude)) + geom_density2d(aes(color = price_group)) + ggtitle("Density of Listings by Price")
 ```
 
-
-
-For customer centric companies like Airbnb, word clouds can help them find customers’ pain points. If they collect feedback from your customers, they can generate a word cloud using customers’ language to help identify what is most important to them. Imagine if “long wait time” cropped up as major emphasis words in customer feedback. That should ring a warning bell. Luxury, Loft, and Village pop out for high priced listings.
-
-
+For customer centric companies like Airbnb, word clouds can help them find customers’ pain points. 
+If they collect feedback from your customers, they can generate a word cloud using customers’ 
+language to help identify what is most important to them. Imagine if “long wait time” cropped up
+as major emphasis words in customer feedback. That should ring a warning bell.
+Luxury, Loft, and Village pop out for high priced listings.
 
 ```{r }
 wordcloud(names(wc_corpus), wc_corpus, min.freq = 825, max.words=100, rot.per=0.2,scale=c(2.4,1))
 airbnb <- airbnb[1:1000,]
 ```
 
-
-
-We can see from the population density by price graph that listing with lower price ranges have the most dense area and that density is inversely proportional to the price group of the listings.
-
+We can see from the population density by price graph that listing with lower price ranges 
+have the most dense area and that density is inversely proportional to the price group of the listings.
 
 
 ```{r }
@@ -128,23 +125,21 @@ ggplot(airbnb, aes(price)) + geom_density(aes(fill = price_group), alpha=0.35) +
 ggplot(subset(airbnb, price < 500), aes(price)) + geom_density(aes(fill = price_group), alpha=0.35) + ggtitle("Listing Population Density by Price")
 ```
 
-
-
-From the below graph of population densit by number of reviews, it also looks like 7% of our population has 0 reviews. Also we can observe that less dense populated areas have large reviews. We can observe the same behaviour by looking a the plot of population density with minimum nights required and both these graphs show the inverse relationship with population density. The first population density vs minimum nights graph is really skewed so we will adjust it putting a filter of less than 50 nights required to get a more
-reasonable graph as below.
-
-
+From the below graph of population densit by number of reviews, 
+it also looks like 7% of our population has 0 reviews.
+Also we can observe that less dense populated areas have large reviews. 
+We can observe the same behaviour by looking a the plot of population density 
+with minimum nights required and both these graphs show the inverse relationship with population density. 
+The first population density vs minimum nights graph is really skewed 
+so we will adjust it putting a filter of less than 50 nights required to get a more reasonable graph as below.
 
 ```{r }
 ggplot(airbnb, aes(number_of_reviews)) + geom_density() + ggtitle("Listing Population Density by Number of Reviews")
 ```
 
-
-
 ```{r }
 ggplot(subset(airbnb, minimum_nights < 50), aes(minimum_nights)) + geom_density() + ggtitle("Listing Population Density by Minimum Nights Required")
 ```
-
 
 ```{r }
 filter_airbnb <- subset(airbnb, total_net_revenue > 0)
@@ -153,12 +148,10 @@ summary(filter_airbnb$total_net_revenue)
 head(filter_airbnb)
 ```
 
-
-
-
-Now we will observe the effects of of room type on the net revenue through the boxplot. As we can see the revenue generally comes from Entire home/apt in all the cities because travellers usually prefer that for their stays but we can see one exception in the form of Bronx in which private takes the major chunk of the revenue.
-
-
+Now we will observe the effects of of room type on the net revenue through the boxplot. 
+As we can see the revenue generally comes from Entire home/apt in all the cities because travellers 
+usually prefer that for their stays but we can see one exception in the form of Bronx 
+in which private takes the major chunk of the revenue.
 
 ```{r }
 
@@ -168,13 +161,13 @@ ggplot(filter_airbnb, aes(neighbourhood_group, log(total_net_revenue))) + geom_b
 
 ```
 
-
-
-Now boxplot will tell us the relationship between price group and the total revenue generated by the listings. So there are a few things that we can analyze and these can’t be generalized in one category. We see in Brooklyn and Manhattan high priced group listings 
-bring out the major revenue for these cities.
-Staten Island’s listings income come from very cheap priced listing maybe because they don’t have that many high priced listings or people usually can’t afford. In Bronc less than average listing account for increase in revenue. So we see that different cities have different modes of revenue generation.
-
-
+Now boxplot will tell us the relationship between price group and the total revenue generated by the listings. 
+So there are a few things that we can analyze and these can’t be generalized in one category. 
+We see in Brooklyn and Manhattan high priced group listings bring out the major revenue for these cities.
+Staten Island’s listings income come from very cheap priced listing maybe 
+because they don’t have that many high priced listings or people usually can’t afford. 
+In Bronc less than average listing account for increase in revenue. 
+So we see that different cities have different modes of revenue generation.
 
 ```{r }
 
@@ -184,15 +177,11 @@ ggplot(filter_airbnb, aes(neighbourhood_group, log(total_net_revenue))) + geom_b
 
 ```
 
-
-
-The model evaluates the host success and measures the financial performance of a listing by taking into account several factors such as location, price, reviews, availability besides other factors. 
-
+The model evaluates the host success and measures the financial performance of a listing 
+by taking into account several factors such as location, price, reviews, availability besides other factors. 
 We will predict for the two most popular destinations in New York that is
 Brooklyn and Manhattan.
-
-We will dicide the dataset 80/20 for training and testing.
-
+We will decide the dataset 80/20 for training and testing.
 
 ```{r }
 airbnb_manhattan = subset(filter_airbnb, neighbourhood_group == "Manhattan")
@@ -216,11 +205,10 @@ head(brooklyn_train)
 
 ```
 
-
-
-We want to maximize our net revenue as a lister. Therefore, we want to model net revenue. We can control a lot of things such as the listing title, where our property is located, what kind of property we’re leasing, the price range, and the availability. We will create a regression based model to appropriately approach
-this problem.
-
+We want to maximize our net revenue as a lister. Therefore, we want to model net revenue. 
+We can control a lot of things such as the listing title, where our property is located,
+what kind of property we’re leasing, the price range, and the availability. 
+We will create a regression based model to appropriately approach this problem.
 
 ```{r }
 model_manhattan = lm(formula = log(total_net_revenue) ~ latitude + room_type + 
@@ -237,13 +225,11 @@ RMSE(exp(1)^manhattan_predictions, exp(1)^log(manhattan_test$total_net_revenue))
 plot(manhattan_predictions, log(manhattan_test$total_net_revenue))
 ```
 
+After running the regression model on the Manhattan data, we have an Adjusted R-Squared of 0.5478., 
+and an RMSE of 17k. So the model is off by about 17k USD / prediction on average.
 
-
-After running the regression model on the Manhattan data, we have an Adjusted R-Squared of 0.5478., and an RMSE of 17k. So the model is off by about 17k USD / prediction on average.
-
-After running the regression model on the Brooklyn data, we have an Adjusted R-Squared of 0.6263., and an RMSE of 23k. So the model is off by about 23k USD / prediction on average.
-
-
+After running the regression model on the Brooklyn data, we have an Adjusted R-Squared of 0.6263., 
+and an RMSE of 23k. So the model is off by about 23k USD / prediction on average.
 
 ```{r }
 model_brooklyn = lm(formula = log(total_net_revenue) ~ latitude + room_type + price_group + 
@@ -258,9 +244,6 @@ RMSE(exp(1)^brooklyn_predictions, exp(1)^log(brooklyn_test$total_net_revenue))
 plot(brooklyn_predictions, log(brooklyn_test$total_net_revenue))
 ```
 
-
-
 It means that the model is performing better for Manhattan in comparison to Brooklyn
-This is a simple baseline model and can be further extended by sing far more complex features and advanced machine learning and deep learning algorithms
-
-
+This is a simple baseline model and can be further extended by sing far more complex features 
+and advanced machine learning and deep learning algorithms
